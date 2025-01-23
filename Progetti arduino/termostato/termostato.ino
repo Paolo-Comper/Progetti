@@ -14,6 +14,12 @@ TFT_eSPI tft = TFT_eSPI();  // Inizializza l'oggetto TFT
 // Inizializza il sensore e il file SD
 DHT dht(DHTPIN, DHTTYPE);
 
+
+float temperatura;
+float umidita;
+float tempRefON_1 = 20.5;  //tempo di riferimento per l'accenzione
+float tempRefOFF_1 = 21; //tempo di riferimento per lo spegnimento
+
 // Stato del relè (per evitare accensioni/spegnimenti ripetuti)
 bool releStato = false;
 
@@ -46,8 +52,8 @@ void setup() {
 
 void loop() {
   // Legge i valori dal sensore
-  float temperatura = dht.readTemperature();
-  float umidita = dht.readHumidity();
+  temperatura = dht.readTemperature();
+  umidita = dht.readHumidity();
 
   // Cancella lo schermo per l'aggiornamento
   tft.fillScreen(TFT_BLACK);
