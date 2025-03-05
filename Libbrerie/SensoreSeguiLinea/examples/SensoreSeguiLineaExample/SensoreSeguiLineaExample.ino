@@ -1,14 +1,22 @@
 #include <SensoreSeguiLinea.h>
 
-SensoreSeguiLinea sensoreSeguiLinea(0x20);
+SensoreSeguiLinea sensore(0x20);
 
 void setup() {
-  sensoreSeguiLinea.begin();
+  Serial.begin(9600);
+  sensore.begin();
 }
 
 void loop() {
-  uint8_t value = sensoreSeguiLinea.read(1);
-  Serial.println(value);
-  delay(1000);
-}
 
+  Serial.print("Valori: ");
+  Serial.print(sensore.read(1));
+  Serial.print(" : ");
+  Serial.print(sensore.read(2));
+  Serial.print(" : ");
+  Serial.print(sensore.read(3));
+  Serial.print(" : ");
+  Serial.print(sensore.read(4));
+  Serial.print("\n");
+  delay(500);
+}
