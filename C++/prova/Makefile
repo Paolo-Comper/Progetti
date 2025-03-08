@@ -32,4 +32,5 @@ clean:
 run:
 	rm -rf $(OBJ_DIR) $(TARGET)
 	make
+	clear
 	./bin/Main

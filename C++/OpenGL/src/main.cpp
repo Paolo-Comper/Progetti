@@ -7,7 +7,7 @@
 
 // Funzione per leggere il file shader
 static void PraseShader(const std::string& filepath){
-
+    
     std::ifstream stream(filepath);
 
     enum class ShaderType{

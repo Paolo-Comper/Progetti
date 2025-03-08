@@ -4,7 +4,7 @@
 
 // Funzione per scattare la foto
 void scattaFoto() {
-    cv::VideoCapture cap(0, cv::CAP_V4L);
+    cv::VideoCapture cap(0);
     cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
 
@@ -49,7 +49,7 @@ std::vector<cv::Point> angoliScontrino() {
 
     // Applica il Canny edge detector
     cv::Canny(gray, edges, 100, 200);
-    cv::imshow("Bordi", edges);
+    ////cv::imshow("Bordi", edges);
     // Trova i contorni nei bordi rilevati
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
@@ -135,9 +135,22 @@ cv::Mat trasformaScontrino(const cv::Mat& img, const std::vector<cv::Point>& pun
     cv::warpPerspective(img, imgWarped, M, cv::Size(larghezza, altezza));
 
     // Ruota l'immagine di 90° a sinistra
-    cv::rotate(imgWarped, imgWarped, cv::ROTATE_90_COUNTERCLOCKWISE);
+    cv::rotate(imgWarped, imgWarped, cv::ROTATE_90_CLOCKWISE);
 
     return imgWarped;
+}
+
+cv::Mat leggibile(const cv::Mat& img) {
+    cv::Mat img_gray;
+    cv::cvtColor(img, img_gray, cv::COLOR_BGR2GRAY);
+
+    cv::Mat img_blur;
+    cv::GaussianBlur(img_gray, img_blur, cv::Size(7, 7), 0);
+
+    cv::Mat img_thresh;
+    cv::adaptiveThreshold(img_blur, img_thresh, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 11, 2);
+
+    return img_thresh;
 }
 
 int main() {
@@ -159,8 +172,10 @@ int main() {
 
     std::vector<cv::Point> ordinati = ordinaPunti(best_contour);
     cv::Mat trasformato = trasformaScontrino(img, ordinati);
+    cv::Mat leggibile_img = leggibile(trasformato);
+    
     cv::Mat rimpicciolito;
-    cv::resize(trasformato, rimpicciolito, cv::Size(), 0.5, 0.5);
+    cv::resize(leggibile_img, rimpicciolito, cv::Size(), 0.5, 0.5);
     // Mostra l'immagine con il contorno
     cv::imshow("Scontrino con contorno", rimpicciolito);
 
