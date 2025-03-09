@@ -1,0 +1,5 @@
+[31m[ERROR]Colonna non valida[0m
+[33m[WARNING]Colonna piena[0m
+[33m[WARNING]Colonna piena[0m
+[33m[WARNING]Colonna piena[0m
+[31m[ERROR]Colonna non valida[0m

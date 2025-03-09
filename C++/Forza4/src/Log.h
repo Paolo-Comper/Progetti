@@ -12,3 +12,5 @@ enum LogType {
 };
 
 void log (const char* message,LogType type);
+void logToFile(const char* message, LogType type);
+void svuotaLogFile();
