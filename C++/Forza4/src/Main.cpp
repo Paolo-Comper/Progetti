@@ -1,4 +1,4 @@
-#include<iostream>
+#include <iostream>
 #include <cstdint>
 #include "Log.h"
 #include <deque>
@@ -10,13 +10,15 @@ using std::cout, std::cin, std::deque, std::string, std::pair;
 
 #define ROWSOFCONSOLE 4
 
-enum Player {
+enum Player
+{
     PLAYER1 = 1,  // X in rosso
     PLAYER2 = -1, // O in azzurro
     NONE = 0
 };
 
-struct Posizione {
+struct Posizione
+{
     uint8_t rows;
     uint8_t cols;
 };
@@ -25,28 +27,34 @@ Player tabellone[ROWS][COLS] = {NONE};
 
 Posizione ultima_mossa;
 
-void drawTabellone(Player turno) {
+void drawTabellone(Player turno)
+{
     system("clear");
     cout << "---{   " << ((turno == PLAYER1) ? RED : BLU) << ((turno == PLAYER1) ? "X" : "O") << RESET << "   }---\n";
-    for(int riga = 0; riga < ROWS; riga++) {
-        for(int colonna = 0; colonna < COLS; colonna++) {
+    for (int riga = 0; riga < ROWS; riga++)
+    {
+        for (int colonna = 0; colonna < COLS; colonna++)
+        {
             cout << '|';
-            if(tabellone[riga][colonna] == PLAYER1)
-                cout << RED << "X" << RESET;  // X in rosso
-            else if(tabellone[riga][colonna] == PLAYER2) 
+            if (tabellone[riga][colonna] == PLAYER1)
+                cout << RED << "X" << RESET; // X in rosso
+            else if (tabellone[riga][colonna] == PLAYER2)
                 cout << BLU << "O" << RESET; // O in azzurro
-            else 
+            else
                 cout << " ";
         }
         cout << "|\n";
     }
-    cout << "---------------\n" 
+    cout << "---------------\n"
          << " 1 2 3 4 5 6 7 \n";
 }
 
-bool dropPiece(Player player, uint8_t colonna) {
-    for(int riga = ROWS - 1; riga >= 0; riga--) {
-        if(tabellone[riga][colonna] == NONE) {  // Trova la prima riga libera partendo dal basso
+bool dropPiece(Player player, uint8_t colonna)
+{
+    for (int riga = ROWS - 1; riga >= 0; riga--)
+    {
+        if (tabellone[riga][colonna] == NONE)
+        { // Trova la prima riga libera partendo dal basso
             tabellone[riga][colonna] = player;
             ultima_mossa.rows = riga;
             ultima_mossa.cols = colonna;
@@ -56,17 +64,19 @@ bool dropPiece(Player player, uint8_t colonna) {
     return false; // Colonna piena
 }
 
-bool check(Player player, int8_t s_row, int8_t s_col) {
+bool check(Player player, int8_t s_row, int8_t s_col)
+{
     uint8_t n_pices = 1;
     Posizione pos_corrente;
 
-    for (int i = 1; i <= 3; i++) {
+    for (int i = 1; i <= 3; i++)
+    {
         pos_corrente.rows = ultima_mossa.rows + (i * s_row);
         pos_corrente.cols = ultima_mossa.cols + (i * s_col);
 
-        if ((pos_corrente.rows < 0) || 
-            (pos_corrente.rows >= ROWS) || 
-            (pos_corrente.cols < 0) || 
+        if ((pos_corrente.rows < 0) ||
+            (pos_corrente.rows >= ROWS) ||
+            (pos_corrente.cols < 0) ||
             (pos_corrente.cols >= COLS))
             break;
 
@@ -77,13 +87,14 @@ bool check(Player player, int8_t s_row, int8_t s_col) {
             break;
     }
 
-    for (int i = 1; i <= 3; i++) {
-        pos_corrente.rows = ultima_mossa.rows + (i * (- s_row));
-        pos_corrente.cols = ultima_mossa.cols + (i * (- s_col));
+    for (int i = 1; i <= 3; i++)
+    {
+        pos_corrente.rows = ultima_mossa.rows + (i * (-s_row));
+        pos_corrente.cols = ultima_mossa.cols + (i * (-s_col));
 
-        if ((pos_corrente.rows < 0) || 
-            (pos_corrente.rows >= ROWS) || 
-            (pos_corrente.cols < 0) || 
+        if ((pos_corrente.rows < 0) ||
+            (pos_corrente.rows >= ROWS) ||
+            (pos_corrente.cols < 0) ||
             (pos_corrente.cols >= COLS))
             break;
 
@@ -97,32 +108,39 @@ bool check(Player player, int8_t s_row, int8_t s_col) {
     return (n_pices == 4);
 }
 
-Player checkWin(){
+Player checkWin()
+{
     Player player = tabellone[ultima_mossa.rows][ultima_mossa.cols];
-    return (check(player, 0, 1) || 
-            check(player, 1, 0) || 
-            check(player, 1, 1) || 
-            check(player, 1, -1)) ? player : NONE;
-
+    return (check(player, 0, 1) ||
+            check(player, 1, 0) ||
+            check(player, 1, 1) ||
+            check(player, 1, -1))
+               ? player
+               : NONE;
 }
 
-int main() {
+int main()
+{
     Player turn = PLAYER1;
     svuotaLogFile();
-    while (true) {
+    while (true)
+    {
         drawTabellone(turn);
         int colonna = -1;
         cout << "Inserisci la posizione: ";
-        cin  >> colonna;
-        if(colonna < 1 || colonna > 7) {
+        cin >> colonna;
+        if (colonna < 1 || colonna > 7)
+        {
             logToFile("Colonna non valida", ERROR);
             continue;
         }
-        if(!dropPiece(turn, colonna - 1)) {
+        if (!dropPiece(turn, colonna - 1))
+        {
             logToFile("Colonna piena", WARNING);
             continue;
         }
-        if(checkWin() != NONE) break;
+        if (checkWin() != NONE)
+            break;
         turn = (turn == PLAYER1) ? PLAYER2 : PLAYER1;
     }
 

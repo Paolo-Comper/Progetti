@@ -1,146 +1,157 @@
-#include<iostream>
-#include <cstdint>
-#include "Log.h"
-#include <deque>
+#include <vector>
+#include <random>
+#include <iostream>
+#include <cmath>
+#include "Data.h"
 
-using std::cout, std::cin, std::deque, std::string, std::pair;
+using std::vector, std::cout;
 
-#define ROWS 6
-#define COLS 7
+class NeuralNetwork
+{
+private:
+    vector<vector<double>> layers;
+    vector<vector<vector<double>>> weights;
+    vector<vector<double>> biases;
+    double learning_rate;
 
-#define ROWSOFCONSOLE 4
+public:
+    NeuralNetwork(const vector<int> &struttura, double lr = 0.1) : learning_rate(lr)
+    {
+        for (int neurons : struttura)
+            layers.push_back(vector<double>(neurons, 0.0));
 
-enum Player {
-    PLAYER1 = 1,  // X in rosso
-    PLAYER2 = -1, // O in azzurro
-    NONE = 0
+        for (size_t i = 0; i < struttura.size() - 1; ++i)
+        {
+            weights.push_back(randomWeights(struttura[i], struttura[i + 1]));
+            biases.push_back(vector<double>(struttura[i + 1], 0.0));
+        }
+    }
+
+    vector<vector<double>> randomWeights(int prev_n_neuroni, int next_n_neuroni)
+    {
+        vector<vector<double>> matrix(prev_n_neuroni, vector<double>(next_n_neuroni));
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(-1.0, 1.0);
+
+        for (int i = 0; i < prev_n_neuroni; ++i)
+            for (int j = 0; j < next_n_neuroni; ++j)
+                matrix[i][j] = dis(gen);
+
+        return matrix;
+    }
+
+    double sigmoid(double x)
+    {
+        return 1.0 / (1.0 + exp(-x));
+    }
+
+    double sigmoidDerivative(double x)
+    {
+        double sig = sigmoid(x);
+        return sig * (1 - sig);
+    }
+
+    void forwardPass(const vector<double> &input)
+    {
+        layers[0] = input;
+        for (size_t i = 0; i < weights.size(); ++i)
+        {
+            for (size_t j = 0; j < layers[i + 1].size(); ++j)
+            {
+                layers[i + 1][j] = biases[i][j];
+                for (size_t k = 0; k < layers[i].size(); ++k)
+                    layers[i + 1][j] += layers[i][k] * weights[i][k][j];
+                layers[i + 1][j] = sigmoid(layers[i + 1][j]);
+            }
+        }
+    }
+
+    double getCost(const vector<double> &out_teorico)
+    {
+        vector<double> out_pratico = layers.back();
+        double cost = 0;
+        for (size_t i = 0; i < out_pratico.size(); ++i)
+            cost += pow(out_pratico[i] - out_teorico[i], 2);
+        return cost / out_pratico.size();
+    }
+
+    void backpropagation(const vector<double> &out_teorico)
+    {
+        vector<vector<double>> deltas(layers.size());
+        deltas.back() = vector<double>(layers.back().size());
+
+        for (size_t i = 0; i < layers.back().size(); ++i)
+            deltas.back()[i] = (out_teorico[i] - layers.back()[i]) * sigmoidDerivative(layers.back()[i]);
+
+        for (int l = layers.size() - 2; l > 0; --l)
+        {
+            deltas[l] = vector<double>(layers[l].size(), 0.0);
+            for (size_t j = 0; j < layers[l].size(); ++j)
+                for (size_t k = 0; k < layers[l + 1].size(); ++k)
+                    deltas[l][j] += deltas[l + 1][k] * weights[l][j][k] * sigmoidDerivative(layers[l][j]);
+        }
+
+        for (size_t l = 0; l < weights.size(); ++l)
+        {
+            for (size_t j = 0; j < layers[l + 1].size(); ++j)
+            {
+                biases[l][j] += learning_rate * deltas[l + 1][j];
+                for (size_t k = 0; k < layers[l].size(); ++k)
+                    weights[l][k][j] += learning_rate * layers[l][k] * deltas[l + 1][j];
+            }
+        }
+    }
+
+    vector<double> getOutput()
+    {
+        return layers.back();
+    }
 };
 
-struct Posizione {
-    uint8_t rows;
-    uint8_t cols;
-};
+int main()
+{
+    vector<int> struttura = {4, 5, 6, 7};
+    NeuralNetwork nn(struttura, 0.01);
 
-Player tabellone[ROWS][COLS] = {NONE};
+    vector<double> input = {0.0, 0.0, 0.0, 1.0};
+    //                         AND  NAND OR   NOR  XOR  XNOR NONE
+    vector<double> expected = {1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
 
-Posizione ultima_mossa;
-
-void drawTabellone(Player turno) {
-    system("clear");
-    cout << "---{   " << ((turno == PLAYER1) ? RED : BLU) << ((turno == PLAYER1) ? "X" : "O") << RESET << "   }---\n";
-    for(int riga = 0; riga < ROWS; riga++) {
-        for(int colonna = 0; colonna < COLS; colonna++) {
-            cout << '|';
-            if(tabellone[riga][colonna] == PLAYER1)
-                cout << RED << "X" << RESET;  // X in rosso
-            else if(tabellone[riga][colonna] == PLAYER2) 
-                cout << BLU << "O" << RESET; // O in azzurro
-            else 
-                cout << " ";
-        }
-        cout << "|\n";
-    }
-    cout << "---------------\n" 
-         << " 1 2 3 4 5 6 7 \n";
-}
-
-bool dropPiece(Player player, uint8_t colonna) {
-    for(int riga = ROWS - 1; riga >= 0; riga--) {
-        if(tabellone[riga][colonna] == NONE) {  // Trova la prima riga libera partendo dal basso
-            tabellone[riga][colonna] = player;
-            ultima_mossa.rows = riga;
-            ultima_mossa.cols = colonna;
-            return true;
+    for (int epoch = 0; epoch < 10'000'000; ++epoch)
+    {
+        uint8_t random = std::rand();
+        random = random >> 4;
+        
+        nn.forwardPass(input_data[random]);
+        nn.backpropagation(output_data[random]);
+        if (epoch % 1000 == 0)
+        {
+            cout << "Epoch " << epoch << " Cost: " << nn.getCost(output_data[random]) << '\n';
         }
     }
-    return false; // Colonna piena
-}
 
-bool check(Player player, int8_t s_row, int8_t s_col) {
-    uint8_t n_pices = 1;
-    Posizione pos_corrente;
-
-    for (int i = 1; i <= 3; i++) {
-        pos_corrente.rows = ultima_mossa.rows + (i * s_row);
-        pos_corrente.cols = ultima_mossa.cols + (i * s_col);
-
-        if ((pos_corrente.rows < 0) || 
-            (pos_corrente.rows >= ROWS) || 
-            (pos_corrente.cols < 0) || 
-            (pos_corrente.cols >= COLS))
-            break;
-
-        else if (tabellone[pos_corrente.rows][pos_corrente.cols] == player)
-            n_pices++;
-
-        else
-            break;
-    }
-
-    for (int i = 1; i <= 3; i++) {
-        pos_corrente.rows = ultima_mossa.rows + (i * (- s_row));
-        pos_corrente.cols = ultima_mossa.cols + (i * (- s_col));
-
-        if ((pos_corrente.rows < 0) || 
-            (pos_corrente.rows >= ROWS) || 
-            (pos_corrente.cols < 0) || 
-            (pos_corrente.cols >= COLS))
-            break;
-
-        else if (tabellone[pos_corrente.rows][pos_corrente.cols] == player)
-            n_pices++;
-
-        else
-            break;
-    }
-
-    return (n_pices == 4);
-}
-
-Player checkWin(){
-    Player player = tabellone[ultima_mossa.rows][ultima_mossa.cols];
-    return (check(player, 0, 1) || 
-            check(player, 1, 0) || 
-            check(player, 1, 1) || 
-            check(player, 1, -1)) ? player : NONE;
-
-}
-
-int main() {
-    Player turn = PLAYER1;
-    svuotaLogFile();
-    while (true) {
-        drawTabellone(turn);
-        int colonna = -1;
-        cout << "Inserisci la posizione: ";
-        cin  >> colonna;
-        if(colonna < 1 || colonna > 7) {
-            logToFile("Colonna non valida", ERROR);
-            continue;
-        }
-        if(!dropPiece(turn, colonna - 1)) {
-            logToFile("Colonna piena", WARNING);
-            continue;
-        }
-        if(checkWin() != NONE) break;
-        turn = (turn == PLAYER1) ? PLAYER2 : PLAYER1;
-    }
-
-    drawTabellone(turn);
-    cout << ((checkWin() == PLAYER1) ? RED : BLU) << R"(
-     _____                                              _____ 
-    ( ___ )--------------------------------------------( ___ )
-     |   |                                              |   | 
-     |   |                                              |   | 
-     |   |    _   _       _         _       _           |   | 
-     |   |   | | | | __ _(_) __   _(_)_ __ | |_ ___     |   | 
-     |   |   | |_| |/ _` | | \ \ / / | '_ \| __/ _ \    |   | 
-     |   |   |  _  | (_| | |  \ V /| | | | | || (_) |   |   | 
-     |   |   |_| |_|\__,_|_|   \_/ |_|_| |_|\__\___/    |   | 
-     |   |                                              |   | 
-     |___|                                              |___| 
-    (_____)--------------------------------------------(_____)
-    )" << RESET;
+    nn.forwardPass(input);
+    auto output = nn.getOutput();
+    
+    cout << "AND: "  << output[0] - expected[0] << '\n';
+    cout << "NAND: " << output[1] - expected[1] << '\n';
+    cout << "OR: "   << output[2] - expected[2] << '\n';
+    cout << "NOR: "  << output[3] - expected[3] << '\n';
+    cout << "XOR: "  << output[4] - expected[4] << '\n';
+    cout << "XNOR: " << output[5] - expected[5] << '\n';
+    cout << "NONE: " << output[6] - expected[6] << '\n';
+    cout << "---------------------------------------\n";
+    cout << "AND: "  << output[0] << '\n';
+    cout << "NAND: " << output[1] << '\n';
+    cout << "OR: "   << output[2] << '\n';
+    cout << "NOR: "  << output[3] << '\n';
+    cout << "XOR: "  << output[4] << '\n';
+    cout << "XNOR: " << output[5] << '\n';
+    cout << "NONE: " << output[6] << '\n';
+    
 
     return 0;
 }
+
+
