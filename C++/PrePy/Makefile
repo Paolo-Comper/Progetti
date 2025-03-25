@@ -29,15 +29,18 @@ $(OBJ_DIR):
 clean:
 	rm -rf $(OBJ_DIR) $(TARGET)
 
+# Setup Terminale
 setupTerminal: $(TARGET)
 	sudo cp $(TARGET) /usr/local/bin/
 	sudo chmod +x /usr/local/bin/PrePy
 	echo "PrePy installato in /usr/local/bin/. Ora puoi eseguirlo da qualsiasi cartella digitando 'PrePy'."
 
+# Build
 build:
 	make clean
 	make
 
+# Test
 test:
 	make clean
 	make
@@ -56,4 +59,8 @@ testConfig:
 	clear
 	./bin/PrePy config
 
-
+# Regola per formattare il codice C++ con clang-format
+format:
+	@echo "Formattando i file C++..."
+	@find $(SRC_DIR) -name "*.cpp" -exec clang-format -i {} \;
+	@echo "Formattazione completata!"

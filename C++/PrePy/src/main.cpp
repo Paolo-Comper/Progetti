@@ -1,29 +1,28 @@
-#include <iostream>
-#include <cctype>
-#include "log.h"
-#include <cstdlib>
-#include <string>
 #include "config_menu.h"
+#include "log.h"
+#include "preprocessor.h"
+#include <cctype>
+#include <cstdlib>
+#include <iostream>
+#include <string>
 
 using std::string;
 
 //! Check if the arguments are valid for the program
-bool checkValidArguments(const int &n_arg, const string &input_path) {
+bool checkValidArguments(const int& n_arg, const string& input_path) {
 
     //? Check if the number of arguments is correct
     if (n_arg == 2) {
         log(INFO, "Output path not declared, using default path");
-    }
-    else if (n_arg > 3) {
+    } else if (n_arg > 3) {
         log(ERROR, "To many arguments: Expected input_path output_path(optional)");
         return false;
     }
 
     //? Check if the input file exists
-    if (FILE *file = fopen(input_path.c_str(), "r")) {
+    if (FILE* file = fopen(input_path.c_str(), "r")) {
         fclose(file);
-    } 
-    else {
+    } else {
         log(ERROR, "Input file does not exist");
         return false;
     }
@@ -37,31 +36,20 @@ bool checkValidArguments(const int &n_arg, const string &input_path) {
 }
 
 //! Check if the user wants to open the config menu
-bool checkConfigMenu(const string &input) {
-    return (input == "config");
-}
-
-
+bool checkConfigMenu(const string& input) { return (input == "config"); }
 
 int main(int n_arg, char* args[]) {
     if (n_arg < 2) {
         log(ERROR, "Missing arguments: Expected input_path or 'config'");
         return 1;
-    }
-    else if (checkConfigMenu(args[1])) {
+    } else if (checkConfigMenu(args[1])) {
         mainMenu();
         return 0;
-    }
-    else if (checkValidArguments(n_arg, args[1])) {
-        //TODO: Implement the main function
+    } else if (checkValidArguments(n_arg, args[1])) {
+        preprocessorMain(args[1]);
         log(INFO, "Arguments are valid");
         return 0;
-    }
-    else {
+    } else {
         return 0;
-        
     }
-
-
-
 }
