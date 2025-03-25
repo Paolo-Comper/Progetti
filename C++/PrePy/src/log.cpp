@@ -3,17 +3,19 @@
 #include <string>
 #include "log.h"
 
+using std::string;
+
 //! Per aprire il file di log: tail -f log/log.txt
 
-std::string logMsg(LogType type, const char *message) {
-    std::string msg_log;
+string logMsg(LogType type, const char *message) {
+    string msg_log;
     switch (type) {
     case INFO:
-        return std::string(BLUE) + "[INFO] " + message + RESET + '\n';
+        return string(BLUE) + "[INFO] " + message + RESET + '\n';
     case WARNING:
-        return std::string(YELLOW) + "[WARNING] " + message + RESET + '\n';
+        return string(YELLOW) + "[WARNING] " + message + RESET + '\n';
     case ERROR:
-        return std::string(RED) + "[ERROR] " + message + RESET + '\n';
+        return string(RED) + "[ERROR] " + message + RESET + '\n';
     }
     return "error in logFuncion";
 }

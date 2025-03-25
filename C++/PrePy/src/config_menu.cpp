@@ -4,9 +4,11 @@
 #include "config_menu.h"
 #include "gui.h"
 
+using std::string;
+
 #define OS 'L' // Windows(W), Linux(L)
 
-int printMenu(std::string &menu){
+int printMenu(string &menu){
     // Clear the console
     #if OS == 'W'
     system("cls");
