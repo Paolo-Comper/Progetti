@@ -1,3 +1,4 @@
+#pragma once
 namespace gui {
 
 std::string main_menu = R"(

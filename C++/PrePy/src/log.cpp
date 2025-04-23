@@ -32,8 +32,7 @@ void logToFile(LogType type, const char* message) {
 
 void svuotaLogFile() {
     std::ofstream file("log/log.txt",
-                       std::ios::out |
-                           std::ios::trunc); // Modalità out e trunc per svuotare il file
+                       std::ios::out | std::ios::trunc); // Modalità out e trunc per svuotare il file
     if (file.is_open()) {
         // Scriviamo un messaggio vuoto per svuotare il file senza interrompere tail
         file.close(); // Chiudiamo il file dopo averlo svuotato
