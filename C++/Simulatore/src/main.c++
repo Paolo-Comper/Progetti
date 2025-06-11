@@ -8,10 +8,7 @@
 #include <sstream>
 #include "log.h"
 
-#define ASSERT(x) if (!(x)) __builtin_trap();
-#define GLCall(x) GLClearError();\
-	x;\
-	ASSERT(GLLogCall());
+
 
 using std::string;
 
