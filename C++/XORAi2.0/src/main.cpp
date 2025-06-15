@@ -1,5 +1,7 @@
 #include <spdlog/spdlog.h>
 #include "logger.hpp"
+#include "neural_network.hpp"
+#include <vector>
 
 bool Setup()
 {
@@ -11,6 +13,12 @@ int main()
 { 
     if (Setup()) spdlog::error("The program failed to start");
 
-    spdlog::info("ciao");
+    NN MyNN(2,
+            {{3, ActivationFunctions::SIGMOID},
+             {3, ActivationFunctions::SIGMOID},
+             {2, ActivationFunctions::RELU}});
+
+    MyNN.InitRandom();
+
     return 0;
 }
